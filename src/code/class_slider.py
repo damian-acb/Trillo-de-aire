@@ -1,7 +1,6 @@
 import numpy as np
 import pygame as py
 import pygame.gfxdraw
-# import spatial_transformations as st
 
 
 class Slider:
@@ -67,7 +66,7 @@ class Slider:
 
     def hover(self):
         hover = self.hover_check()
-        if hover['type'] != 'none' or self.moving_mass[0]:
+        if hover['type'] != 'none' or self.moving_mass[0] or self.moving_sensor[0]:
             py.mouse.set_cursor(py.SYSTEM_CURSOR_HAND)
         else:
             py.mouse.set_cursor(py.SYSTEM_CURSOR_ARROW)
@@ -142,7 +141,7 @@ class Slider:
 
     def rotate_mouse(self):
 
-        if self.rotating and not self.moving_mass[0]:  # Check this
+        if self.rotating and not (self.moving_mass[0] or self.moving_sensor[0]):  # Check this
             pos = np.array(py.mouse.get_pos())
             y = self.ref[1] - pos[1]
             a = np.arctan(y / (pos[0] - self.ref[0]))
