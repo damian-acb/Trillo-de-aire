@@ -1,7 +1,7 @@
 import pygame as py
-import numpy as np
 import src.code.class_slider as class_slider
 import src.code.class_GUI as class_GUI
+import time
 
 
 def event_handler(slider, gui):
@@ -27,7 +27,7 @@ def event_handler(slider, gui):
             # If a mouse button was pressed and the Slider's moving mass[0] is True, then...
             slider.moving_mass[0] = False  # The mass is no longer moving...
             slider.masses[slider.moving_mass[1]]['vel'] = 0  # Set mass's velocity to 0...
-            gui.add_button.configure(state='normal')  # The button 'add mass' can be pressed again...
+            gui.frame1.pack()  # The button 'add mass' can be pressed again...
             py.mouse.set_cursor(py.SYSTEM_CURSOR_ARROW)  # Change the cursor aspect
         if hover['type'] == 'mass':
             # If the hover type is 'mass', then...
@@ -52,10 +52,9 @@ def main():
 
     # Pygame window configuration ----------------------------------------------------
 
-    Sc = np.array([720, 480], dtype=np.float64)  # Screen size
-    screen = py.display.set_mode(Sc)  # Create pygame window and with certain size
+    Sc = (720, 480)  # Screen size
+    screen = py.display.set_mode(Sc) # Create pygame window and with certain size
     py.display.set_caption("Slider Simulation")  # Caption of the window
-    clock = py.time.Clock()  # Pygame object to control frame rate
 
     # Create a slider with all its necessary information and structure ---------------
     slider = class_slider.Slider(screen, 80, 660, 30)  # Create the slider
@@ -63,13 +62,15 @@ def main():
     # Create a GUI with all its necessary information and structure ------------------
     Gs = (240, 480)  # GUI size
     GUI = class_GUI.GUI(Gs, slider)  # Create the GUI
+    previous_timeF = time.time()
+    previous_time = time.time()
 
     run = True  # Variable to control the main loop
     while run:  # The program will be running while this main loop is active
-
-        dt = .002  # Set the time increment for the system
         screen.fill((255, 255, 255))  # Clean the window
-
+        current_time = time.time()
+        dt = current_time - previous_time  # Set the time increment for the system
+        previous_time = current_time
         if slider.play:  # Set of instructions to do if the simulation is in Play
             slider.evol(dt, GUI.mu.get())
             # Evolve the system with a given dt (time step) mu (friction taken from the GUI's slider)
@@ -83,10 +84,14 @@ def main():
             # If the event_handler function detects close events, then set the run variable to False so that the
             # main loop can stop
 
-        slider.draw()  # Call the function that is in charge to draw everything automatically
-
+        current_timeF = time.time()
+        dtF = current_timeF - previous_timeF
+        if dtF >= 1/60:
+            previous_timeF = current_timeF
+            slider.draw()  # Call the function that is in charge to draw everything automatically
+            py.display.flip()  # Update the screen
+            GUI.play_button_text.set('%.6lf'%dt)
         GUI.root.update()  # Update the GUI
-        clock.tick(500)  # Set the frame rate
 
     # This is executed once the main loop terminates ----------------------------------------------
     py.quit()  # Close all that has to do with Pygame

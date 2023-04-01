@@ -50,11 +50,15 @@ class GUI:
         self.frame1 = ctk.CTkFrame(master=self.root)
         self.frame1.pack(pady=20, padx=25, fill='both')
 
-        self.add_entry = ctk.CTkEntry(master=self.frame1, placeholder_text='Insert mass in grams')
-        self.add_entry.pack(pady=6, padx=20)
+        self.add_mass_label = ctk.CTkLabel(master=self.frame1, text='Add mass')
+        self.add_mass_label.pack(pady=6, padx=20)
 
-        self.add_button = ctk.CTkButton(master=self.frame1, text='Add', command=self.check_mass, cursor='hand2')
-        self.add_button.pack(pady=6, padx=20)
+        self.add_mass_button1 = ctk.CTkButton(master=self.frame1, text='100 gr', command=lambda:self.check_mass(100), cursor='hand2')
+        self.add_mass_button2 = ctk.CTkButton(master=self.frame1, text='150 gr', command=lambda:self.check_mass(150), cursor='hand2')
+        self.add_mass_button3 = ctk.CTkButton(master=self.frame1, text='250 gr', command=lambda:self.check_mass(250), cursor='hand2')
+        self.add_mass_button1.pack(pady=6, padx=20)
+        self.add_mass_button2.pack(pady=6, padx=20)
+        self.add_mass_button3.pack(pady=6, padx=20)
 
         self.mu_slider = ctk.CTkSlider(master=self.frame2, from_=0, to=1, variable=self.mu, hover=True)
         self.mu_slider.pack(pady=6, padx=4)
@@ -72,20 +76,17 @@ class GUI:
         self.frame5.pack(pady=20, padx=25)
         self.add_timer_button.pack(pady=6, padx=20)
 
-    def check_mass(self):
+    def check_mass(self, m):
         try:
-            m = self.add_entry.get()
             n = float(m)/1000
             if 0.001 <= n <= 10:
-                self.add_button.configure(state='disabled')
+                self.frame1.pack_forget()
                 self.slider.add_mass(n)
             else:
                 tkm.showinfo('Value error: mass', 'The range of mass is 10 - 10,000 grams')
 
         except ValueError:
             tkm.showinfo('Value error: mass', 'Only numbers allowed')
-
-        self.add_entry.delete(0, ctk.END)
 
     def close(self):
         if tkm.askokcancel('Quit', 'Do you want to close the program ?'):
@@ -104,7 +105,6 @@ class GUI:
             self.slider.play = True
             self.play_button_text.set('Pause')
             self.play_button.focus_set()
-            self.add_entry.delete(0, ctk.END)
             self.frame1.pack_forget()
             self.frame5.pack_forget()
             self.unselect_mass()
@@ -142,15 +142,15 @@ class GUI:
         time = ctk.CTkLabel(master=timer, bg_color='#ffffff')
         time.pack(pady=8, padx=30, fill='x')
 
-        time.configure(text=f'{0: .3f}'+' s')
+        time.configure(text=f'{0: .2f}'+' s')
 
         buttons = ctk.CTkFrame(master=timer, fg_color=color)
         buttons.pack(fill='both')
+        buttons.rowconfigure(index=0, weight=1)
+        buttons.rowconfigure(index=1, weight=1)
         buttons.columnconfigure(index=0, weight=1)
         buttons.columnconfigure(index=1, weight=1)
         buttons.columnconfigure(index=2, weight=1)
-        buttons.rowconfigure(index=0, weight=1)
-        buttons.rowconfigure(index=1, weight=1)
 
         pulse_b = ctk.CTkButton(master=buttons, text='Pulse', cursor='hand2',
                                    height=10, corner_radius=0, border_color='#000000', fg_color='#000000')
@@ -163,18 +163,19 @@ class GUI:
         gate_b.configure(command=lambda: self.gate(Timer))
         gate_b.grid(row=0, column=1)
 
-        add_sensor = ctk.CTkButton(master=buttons, text='Add', cursor='hand2',
-                                   height=10, corner_radius=0, border_color='#000000')
+        mode_b = ctk.CTkButton(master=buttons, text='.00', cursor='hand2', height=10, corner_radius=0, border_color='#000000')
+        mode_b.configure(command=lambda: self.mode2(Timer))
+        mode_b.grid(row=0, column=2)
+
+        add_sensor = ctk.CTkButton(master=buttons, text='Add', cursor='hand2', height=10, corner_radius=0, border_color='#000000')
         add_sensor.configure(command=lambda: self.slider.add_sensor(Timer))
         add_sensor.grid(row=1, column=0)
 
-        rem_sensor = ctk.CTkButton(master=buttons, text='Remove', cursor='hand2',
-                                   height=10, corner_radius=0, border_color='#000000')
+        rem_sensor = ctk.CTkButton(master=buttons, text='Remove', cursor='hand2', height=10, corner_radius=0, border_color='#000000')
         rem_sensor.configure(command=lambda: self.slider.rem_sensor(Timer, True))
         rem_sensor.grid(row=1, column=1)
 
-        res_sensor = ctk.CTkButton(master=buttons, text='Reset', cursor='hand2',
-                                   height=10, corner_radius=0, border_color='#000000')
+        res_sensor = ctk.CTkButton(master=buttons, text='Reset', cursor='hand2', height=10, corner_radius=0, border_color='#000000')
         res_sensor.configure(command=lambda: self.reset_timer(Timer))
         res_sensor.grid(row=1, column=2)
 
@@ -182,16 +183,22 @@ class GUI:
         X.configure(command=lambda: self.rem_timer(Timer))
         X.place(relx=1., rely=0., x=0, y=0, anchor=ctk.NE)
 
-        self.timers.append([timer, time, Timer, pulse_b, gate_b])
+        self.timers.append([timer, time, Timer, pulse_b, gate_b, mode_b])
 
     @staticmethod
     def rgb_to_hex(rgb):
         return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
 
     def update_timer(self, n, reset):
-        e = np.random.normal(0, .003, 1)[0] if not reset else 0
-        time = self.slider.timers[n]['time'] + e
-        self.timers[n][1].configure(text=f'{time: .3f}'+' s')
+        timer = self.slider.timers[n]
+        if timer['precision_mode'] == 1:
+            e = np.random.normal(0, .03, 1)[0] if not reset else 0
+            time = timer['time'] + e
+            self.timers[n][1].configure(text=f'{time: .2f}'+' s')
+        if timer['precision_mode'] == 2:
+            e = np.random.normal(0, .0003, 1)[0] if not reset else 0
+            time = timer['time'] + e
+            self.timers[n][1].configure(text=f'{time: .4f}'+' s')
 
     def rem_timer(self, Timer):
         self.slider.rem_sensor(Timer, False)
@@ -217,3 +224,17 @@ class GUI:
         self.slider.timers[n]['type'] = 'gate'
         self.timers[n][4].configure(fg_color='#000000')
         self.timers[n][3].configure(fg_color='#666666')
+
+    def mode1(self, timer):
+        n = self.slider.index_timer(timer['id'])
+        self.slider.timers[n]['precision_mode'] = 1
+        self.timers[n][5].configure(text='.0001')
+        self.timers[n][5].configure(command=lambda: self.mode2(timer))
+        self.reset_timer(timer)
+
+    def mode2(self, timer):
+        n = self.slider.index_timer(timer['id'])
+        self.slider.timers[n]['precision_mode'] = 2
+        self.timers[n][5].configure(text='.01')
+        self.timers[n][5].configure(command=lambda: self.mode1(timer))
+        self.reset_timer(timer)

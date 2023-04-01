@@ -232,7 +232,7 @@ class Slider:
 
     def add_timer(self):
         color = np.random.randint(20, 230, 3)
-        timer = {'s': 0, 'type': 'pulse', 'id': self.t_id, 'play': False, 'time': 0., 'color': color}
+        timer = {'s': 0, 'type': 'pulse', 'id': self.t_id, 'play': False, 'time': 0., 'color': color, 'precision_mode': 1}
         self.timers.append(timer)
         self.t_id += 1
 
