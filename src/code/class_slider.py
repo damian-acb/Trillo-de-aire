@@ -13,6 +13,8 @@ class Slider:
         self.color = (192, 192, 192)
         self.points = np.array([self.ref, self.ref + [0, -width], self.ref + [length, -width], self.ref + [length, 0]])
         self.angle = 0
+        self.maxAngle = 30*np.pi/180
+        self.maxFriction = np.arctan(self.maxAngle) * .9
         self.rotating = False
 
         # Masses
@@ -24,7 +26,8 @@ class Slider:
 
         self.play = False
         self.rule = self.rule_points(220) + self.points[1]
-        self.rule2 = self.rule_points2(220)
+        self.rule2 = self.rule_points2(220) + self.points[3]
+        self.rule3 = self.rule_points2(220)
 
         # Sensors
         self.sensors = []
@@ -58,9 +61,8 @@ class Slider:
             py.draw.aaline(self.screen, (0, 0, 0), self.rule[i, 0], self.rule[i, 1])
 
         # Draw the rule2
-        ref2 = [self.points[3][0], self.ref[1]]
         for i in range(self.rule2.shape[0]):
-            py.draw.aaline(self.screen, (0, 0, 0), self.rule2[i, 0] + ref2, self.rule2[i, 1] + ref2)
+            py.draw.aaline(self.screen, (0, 0, 0), self.rule2[i, 0], self.rule2[i, 1])
 
         # Draw all the sensors
         for sensor in self.sensors:
@@ -155,6 +157,8 @@ class Slider:
             if y >= 0 and a <= 30*np.pi/180:
                 self.angle = a
                 self.rotate_all(-b)
+                ref2 = np.array([self.points[3][0], self.ref[1]])
+                self.rule2 = self.rule3 + ref2
 
     def add_mass(self, mass):
         color = np.random.randint(20, 230, 3)
@@ -186,16 +190,27 @@ class Slider:
                 self.sensors[self.moving_sensor[1]]['points'] = points
 
     def evol(self, dt, mu):
+        # Comments:
+        # - self.maxFriction is the static friction coeficient for the maximum angle the slider can reach
+        # - mu is a variable from 0 to 1
         if self.play:
             g = 981*3  # 9.81
             sin = np.sin(self.angle)
             cos = np.cos(self.angle)
-            def u(x): return x*np.tan(self.angle)
+
+            friction = mu*self.maxFriction
             for mass in self.masses:
+
                 v0 = mass['vel']
-                n = 1 if v0 <= 0 else -1
-                d = v0*dt - .5*g*sin*dt**2 + n*.5*u(mu)*g*cos*dt**2
-                vel = v0 - g*sin*dt + n*u(mu)*g*cos*dt
+                n = 1 if v0 < 0 else -1 if v0 > 0 else 0  # The variable n determinates the sign of the frction 
+
+                if v0==0 and sin <= (1.1*friction)*cos:  # It did not exceed the static coeficient
+                    d = 0
+                    vel = 0
+                else:
+                    d = v0*dt - .5*g*sin*dt**2 + n*.5*friction*g*cos*dt**2
+                    vel = v0 - g*sin*dt + n*friction*g*cos*dt
+
                 r = d*np.array([cos, -sin])
                 mass['vel'] = vel
                 for i in range(4):

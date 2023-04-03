@@ -63,14 +63,11 @@ def main():
     Gs = (240, 480)  # GUI size
     GUI = class_GUI.GUI(Gs, slider)  # Create the GUI
     previous_timeF = time.time()
-    previous_time = time.time()
 
     run = True  # Variable to control the main loop
     while run:  # The program will be running while this main loop is active
         screen.fill((255, 255, 255))  # Clean the window
-        current_time = time.time()
-        dt = current_time - previous_time  # Set the time increment for the system
-        previous_time = current_time
+        dt = .0001  # Set the time increment for the system
         if slider.play:  # Set of instructions to do if the simulation is in Play
             slider.evol(dt, GUI.mu.get())
             # Evolve the system with a given dt (time step) mu (friction taken from the GUI's slider)
@@ -90,7 +87,7 @@ def main():
             previous_timeF = current_timeF
             slider.draw()  # Call the function that is in charge to draw everything automatically
             py.display.flip()  # Update the screen
-        GUI.root.update()  # Update the GUI
+            GUI.root.update()  # Update the GUI
 
     # This is executed once the main loop terminates ----------------------------------------------
     py.quit()  # Close all that has to do with Pygame

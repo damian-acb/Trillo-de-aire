@@ -192,11 +192,13 @@ class GUI:
     def update_timer(self, n, reset):
         timer = self.slider.timers[n]
         if timer['precision_mode'] == 1:
-            e = np.random.normal(0, .03, 1)[0] if not reset else 0
+            # e = np.random.normal(0, .03, 1)[0] if not reset else 0
+            e = 0
             time = timer['time'] + e
             self.timers[n][1].configure(text=f'{time: .2f}'+' s')
         if timer['precision_mode'] == 2:
-            e = np.random.normal(0, .0003, 1)[0] if not reset else 0
+            # e = np.random.normal(0, .0003, 1)[0] if not reset else 0
+            e = 0
             time = timer['time'] + e
             self.timers[n][1].configure(text=f'{time: .4f}'+' s')
 
