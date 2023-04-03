@@ -90,7 +90,6 @@ def main():
             previous_timeF = current_timeF
             slider.draw()  # Call the function that is in charge to draw everything automatically
             py.display.flip()  # Update the screen
-            GUI.play_button_text.set('%.6lf'%dt)
         GUI.root.update()  # Update the GUI
 
     # This is executed once the main loop terminates ----------------------------------------------

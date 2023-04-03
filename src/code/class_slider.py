@@ -24,6 +24,7 @@ class Slider:
 
         self.play = False
         self.rule = self.rule_points(220) + self.points[1]
+        self.rule2 = self.rule_points2(220)
 
         # Sensors
         self.sensors = []
@@ -55,6 +56,11 @@ class Slider:
         # Draw the rule
         for i in range(self.rule.shape[0]):
             py.draw.aaline(self.screen, (0, 0, 0), self.rule[i, 0], self.rule[i, 1])
+
+        # Draw the rule2
+        ref2 = [self.points[3][0], self.ref[1]]
+        for i in range(self.rule2.shape[0]):
+            py.draw.aaline(self.screen, (0, 0, 0), self.rule2[i, 0] + ref2, self.rule2[i, 1] + ref2)
 
         # Draw all the sensors
         for sensor in self.sensors:
@@ -114,7 +120,6 @@ class Slider:
 
         # Rotate the rule
         for i in range(2):
-            size = self.rule.shape[0]
             self.rule[:, i] -= self.ref
             self.rule[:, i] = rotate(self.rule[:, i])
             self.rule[:, i] += self.ref
@@ -159,7 +164,6 @@ class Slider:
 
     def move_object(self):
         if self.moving_mass[0]:
-            R = self.rotation_matrix2d(-self.angle)
             pos = np.array(py.mouse.get_pos())
             x = (pos[0] - self.points[1, 0])
             v1 = np.array([self.mw/2, self.width + self.W], dtype=np.float64)
@@ -173,7 +177,6 @@ class Slider:
                 points += self.points[1] + [x, - x * np.tan(self.angle)] + (self.mw/2 - self.W*np.tan(self.angle))*np.array([-np.cos(self.angle), np.sin(self.angle)])
                 self.masses[self.moving_mass[1]]['points'] = points
         if self.moving_sensor[0]:
-            R = self.rotation_matrix2d(-self.angle)
             pos = np.array(py.mouse.get_pos())
             x = (pos[0] - self.ref_s[0, 0])
             if self.ref_s[0, 0] <= pos[0] <= self.ref_s[1, 0]:
@@ -189,7 +192,6 @@ class Slider:
             cos = np.cos(self.angle)
             def u(x): return x*np.tan(self.angle)
             for mass in self.masses:
-                m = mass['mass']
                 v0 = mass['vel']
                 n = 1 if v0 <= 0 else -1
                 d = v0*dt - .5*g*sin*dt**2 + n*.5*u(mu)*g*cos*dt**2
@@ -229,6 +231,18 @@ class Slider:
             points[i - 1, 1, 1] = s
 
         return points
+    def rule_points2(self, n):
+        points = self.rule_points(n)
+
+        r = self.rotation_matrix2d(-np.pi/2)  # Rotation matrix
+        def rotate(v): return (r @ v.reshape((v.shape[-2], v.shape[-1], 1))).reshape((v.shape[-2], v.shape[-1]))
+
+        for i in range(2):
+            points[:,i] = rotate(points[:,i])
+
+        return points
+
+
 
     def add_timer(self):
         color = np.random.randint(20, 230, 3)
