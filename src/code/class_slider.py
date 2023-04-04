@@ -16,6 +16,7 @@ class Slider:
         self.maxAngle = 30*np.pi/180
         self.maxFriction = np.arctan(self.maxAngle) * .9
         self.rotating = False
+        self.GUI = 0
 
         # Masses
         self.masses = []
@@ -36,6 +37,7 @@ class Slider:
         self.sw = 30
         self.s = np.array([[0, self.h], [-self.mw, self.h]], dtype=np.float64)
         self.ref_s = self.ref + [[0, -self.h - 2*self.W], [self.length, -self.h - 2*self.W]]
+        self.A = np.array([[1, 0], [0 ,-1]], dtype=np.float64)
 
         # Timers
         self.timers = []
@@ -43,13 +45,15 @@ class Slider:
 
     def draw(self):
         # Draw the slider
-        py.gfxdraw.aapolygon(self.screen, self.points, self.color)
-        py.gfxdraw.filled_polygon(self.screen, self.points, self.color)
+        # py.gfxdraw.aapolygon(self.screen, self.points, self.color)
+        # py.gfxdraw.filled_polygon(self.screen, self.points, self.color)
         if not self.play:
             py.gfxdraw.aacircle(self.screen, int(self.points[-1, 0]), int(self.points[-1, 1]),  int(self.width/3), (255, 0, 0))
             py.gfxdraw.filled_circle(self.screen, int(self.points[-1, 0]), int(self.points[-1, 1]),  int(self.width/3), (255, 0, 0))
             py.gfxdraw.aacircle(self.screen, int(self.points[0, 0]), int(self.points[0, 1]), int(self.width/5), (0, 0, 0))
             py.gfxdraw.filled_circle(self.screen, int(self.points[0, 0]), int(self.points[0, 1]), int(self.width/5), (0, 0, 0))
+        py.gfxdraw.aapolygon(self.screen, self.points, self.color)
+        py.gfxdraw.filled_polygon(self.screen, self.points, self.color)
 
         # Draw all the masses
         for mass in self.masses:
@@ -113,6 +117,7 @@ class Slider:
     def rotate_all(self, angle):
 
         r = self.rotation_matrix2d(angle)  # Rotation matrix
+        r1 = self.rotation_matrix2d(-angle)  # Inverse rotation matrix
         def rotate(v): return (r @ v.reshape((v.shape[-2], v.shape[-1], 1))).reshape((v.shape[-2], v.shape[-1]))
 
         # Rotate the slider
@@ -146,6 +151,9 @@ class Slider:
         # Rotate s vector
         self.s = rotate(self.s)
 
+        # Rotate W 
+        self.A = r @ (self.A @ r1)
+
     def rotate_mouse(self):
 
         if self.rotating and not (self.moving_mass[0] or self.moving_sensor[0]):  # Check this
@@ -154,7 +162,7 @@ class Slider:
             a = np.arctan(y / (pos[0] - self.ref[0]))
             b = a - self.angle
 
-            if y >= 0 and a <= 30*np.pi/180:
+            if y >= 0 and a <= np.pi/6:
                 self.angle = a
                 self.rotate_all(-b)
                 ref2 = np.array([self.points[3][0], self.ref[1]])
@@ -184,7 +192,7 @@ class Slider:
             pos = np.array(py.mouse.get_pos())
             x = (pos[0] - self.ref_s[0, 0])
             if self.ref_s[0, 0] <= pos[0] <= self.ref_s[1, 0]:
-                points = np.array([[0, 0], [0, -self.sw], [self.sl, -self.sw], [self.sl, 0], [self.sl/2, 0], [self.sl/2, 15]], dtype=np.float64)
+                points = np.array([[0, 0], [0, -self.sw], [self.sl, -self.sw], [self.sl, 0], [self.sl/2, 0], [self.sl/2, 75]], dtype=np.float64)
                 points = self.rotate(points, -self.angle)
                 points += self.ref_s[0] + [x, - x * np.tan(self.angle)]
                 self.sensors[self.moving_sensor[1]]['points'] = points
@@ -202,22 +210,27 @@ class Slider:
             for mass in self.masses:
 
                 v0 = mass['vel']
-                n = 1 if v0 < 0 else -1 if v0 > 0 else 0  # The variable n determinates the sign of the frction 
+                n = 1 if v0 < 0 else -1 if v0 > 0 else 0  # Here we are defining the variable n which determinates the sign of the frction 
 
-                if v0==0 and sin <= (1.1*friction)*cos:  # It did not exceed the static coeficient
+                if v0==0 and sin <= (1.1*friction)*cos:  # It did not exceed the coefficient of static friction
                     d = 0
                     vel = 0
                 else:
-                    d = v0*dt - .5*g*sin*dt**2 + n*.5*friction*g*cos*dt**2
+                    d = v0*dt  #  - .5*g*sin*dt**2 + n*.5*friction*g*cos*dt**2
                     vel = v0 - g*sin*dt + n*friction*g*cos*dt
 
-                r = d*np.array([cos, -sin])
+                r = d*np.array([cos, -sin])  # Convert the displacement d into a vector
                 mass['vel'] = vel
+
+                # Update position for every point that forms the mass
                 for i in range(4):
                     mass['points'][i] += r
+
+                # Check for border collitions
                 if mass['points'][0, 0] < self.points[1, 0] or mass['points'][3, 0] > self.points[2, 0]:
                     mass['vel'] *= -1
 
+            # The next code manages collitions
             for i in range(len(self.masses) - 1):
 
                 for j in range(i + 1, len(self.masses)):
@@ -297,42 +310,31 @@ class Slider:
                 self.timers[ind]['play'] = False
 
     def sensor_check(self):
-        R = self.rotation_matrix2d(self.angle)
-        R1 = self.rotation_matrix2d(-self.angle)
-
-        def rotate(r, v):
-            return (r @ v.reshape((v.shape[-2], v.shape[-1], 1))).reshape((v.shape[-2], v.shape[-1]))
 
         for sensor in self.sensors:
             for mass in self.masses:
-                mass['points'] -= self.ref
-                mass['points'] = rotate(R, mass['points'])
-                mass['points'] += self.ref
-                sensor['points'] -= self.ref
-                sensor['points'] = rotate(R, sensor['points'])
-                sensor['points'] += self.ref
+                p = sensor['points'][4]
+                v = mass['points'][0] - p + self.A @ (mass['points'][3] - p) #  - [2, 0]*sensor['points'][4]
+                d = np.sqrt(np.dot(v, v))
 
-                if mass['points'][0, 0] <= sensor['points'][4, 0] <= mass['points'][3, 0]:
+                if d <= self.mw:
                     if not sensor['h']:
                         self.timer_pulse(sensor['timer'], True)
                         sensor['h'] = True
+                        self.GUI.play()
                 else:
                     if sensor['h']:
                         self.timer_pulse(sensor['timer'], False)
                         sensor['h'] = False
-
-                mass['points'] -= self.ref
-                mass['points'] = rotate(R1, mass['points'])
-                mass['points'] += self.ref
-                sensor['points'] -= self.ref
-                sensor['points'] = rotate(R1, sensor['points'])
-                sensor['points'] += self.ref
+                        self.GUI.play()
 
     def index_timer(self, di):
         for i in range(len(self.timers)):
             if self.timers[i]['id'] == di:
                 return i
+        return -1
 
     def reset_timer(self, n):
         self.timers[n]['s'] = 0
+        self.timers[n]['h'] = False
         self.timers[n]['time'] = 0

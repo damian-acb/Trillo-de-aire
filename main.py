@@ -63,6 +63,7 @@ def main():
     Gs = (240, 480)  # GUI size
     GUI = class_GUI.GUI(Gs, slider)  # Create the GUI
     previous_timeF = time.time()
+    slider.GUI = GUI
 
     run = True  # Variable to control the main loop
     while run:  # The program will be running while this main loop is active
@@ -75,7 +76,6 @@ def main():
             for i in range(len(slider.timers)):  # Loop thorough all the timers by index number
                 if slider.timers[i]['play']:  # Check if the i-th timer Play state is True
                     slider.timers[i]['time'] += dt  # Update the timer time
-                    GUI.update_timer(i, False)  # Update the i-th timer in the GUI
         else:  # Only detect events (pressed keys, mouse clicks, etc.) if the simulation is in pause
             run = event_handler(slider, GUI)
             # If the event_handler function detects close events, then set the run variable to False so that the
@@ -87,6 +87,9 @@ def main():
             previous_timeF = current_timeF
             slider.draw()  # Call the function that is in charge to draw everything automatically
             py.display.flip()  # Update the screen
+            for i in range(len(slider.timers)):  # Loop thorough all the timers by index number
+                if slider.timers[i]['play']:  # Check if the i-th timer Play state is True
+                    GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
             GUI.root.update()  # Update the GUI
 
     # This is executed once the main loop terminates ----------------------------------------------

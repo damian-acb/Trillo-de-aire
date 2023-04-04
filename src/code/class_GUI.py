@@ -189,17 +189,16 @@ class GUI:
     def rgb_to_hex(rgb):
         return '#{:02x}{:02x}{:02x}'.format(rgb[0], rgb[1], rgb[2])
 
-    def update_timer(self, n, reset):
-        timer = self.slider.timers[n]
-        if timer['precision_mode'] == 1:
+    def update_timer(self, n, time, precision_mode, reset):
+        if precision_mode == 1:
             # e = np.random.normal(0, .03, 1)[0] if not reset else 0
             e = 0
-            time = timer['time'] + e
+            time = time + e
             self.timers[n][1].configure(text=f'{time: .2f}'+' s')
-        if timer['precision_mode'] == 2:
+        if precision_mode == 2:
             # e = np.random.normal(0, .0003, 1)[0] if not reset else 0
             e = 0
-            time = timer['time'] + e
+            time = time + e
             self.timers[n][1].configure(text=f'{time: .4f}'+' s')
 
     def rem_timer(self, Timer):
@@ -212,8 +211,9 @@ class GUI:
 
     def reset_timer(self, timer):
         n = self.slider.index_timer(timer['id'])
+        precision_mode = self.slider.timers[n]['precision_mode']
         self.slider.reset_timer(n)
-        self.update_timer(n, True)
+        self.update_timer(n, 0, precision_mode, True)
 
     def pulse(self, timer):
         n = self.slider.index_timer(timer['id'])
