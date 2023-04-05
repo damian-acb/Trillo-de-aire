@@ -1,7 +1,9 @@
 import pygame as py
+import numpy as np
 import src.code.class_slider as class_slider
 import src.code.class_GUI as class_GUI
 import time
+import matplotlib.pyplot as plt
 
 
 def event_handler(slider, gui):
@@ -64,6 +66,9 @@ def main():
     GUI = class_GUI.GUI(Gs, slider)  # Create the GUI
     previous_timeF = time.time()
 
+    c = 0 
+    toplot=[]
+
     run = True  # Variable to control the main loop
     while run:  # The program will be running while this main loop is active
         screen.fill((255, 255, 255))  # Clean the window
@@ -86,9 +91,29 @@ def main():
             previous_timeF = current_timeF
             slider.draw()  # Call the function that is in charge to draw everything automatically
             py.display.flip()  # Update the screen
+            if len(slider.masses) > 0 and not slider.moving_mass[0]:
+                if slider.play:
+                    c = 1
+                    mass = slider.masses[0]['mass']
+                    y = slider.points[1][1] - slider.masses[0]['points'][0][1]
+                    v = 981*3*(y)*(mass)
+                    k = .5*mass*slider.masses[0]['vel']**2
+                    toplot.append([v, k, v+k])
+                elif not slider.play and c == 1:
+                    c = 0
+                    data = np.array(toplot)
+                    fig, ax = plt.subplots(figsize=(8, 6))
+                    ax.plot(data[:,0], label='V')
+                    ax.plot(data[:,1], label='K') 
+                    ax.plot(data[:,2], label='E') 
+                    plt.legend()
+                    plt.show()
+
+                    np.save('data.dat', data)
+                    toplot = []
+
             for i in range(len(slider.timers)):  # Loop thorough all the timers by index number
-                if slider.timers[i]['play']:  # Check if the i-th timer Play state is True
-                    GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
+                GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
             GUI.root.update()  # Update the GUI
 
     # This is executed once the main loop terminates ----------------------------------------------
