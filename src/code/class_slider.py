@@ -16,7 +16,6 @@ class Slider:
         self.maxAngle = 30*np.pi/180
         self.maxFriction = np.arctan(self.maxAngle) * .9
         self.rotating = False
-        self.GUI = 0
 
         # Masses
         self.masses = []
@@ -42,6 +41,7 @@ class Slider:
         # Timers
         self.timers = []
         self.t_id = 0
+
 
     def draw(self):
         # Draw the slider
@@ -201,6 +201,8 @@ class Slider:
         # Comments:
         # - self.maxFriction is the static friction coeficient for the maximum angle the slider can reach
         # - mu is a variable from 0 to 1
+        # - The 'unity' in pygame is pixels, and in the rule each centimeter is 3 pixels wide;
+        #   that is why the gravity (g) is 9.81*3*100 to convert from meters/s^2 to pixels/s^2
         if self.play:
             g = 981*3  # 9.81
             sin = np.sin(self.angle)
@@ -212,7 +214,7 @@ class Slider:
                 v0 = mass['vel']
                 n = 1 if v0 < 0 else -1 if v0 > 0 else 0  # Here we are defining the variable n which determinates the sign of the frction 
 
-                if v0==0 and sin <= (1.1*friction)*cos:  # It did not exceed the coefficient of static friction
+                if v0==0 and sin <= (1.1*friction)*cos and friction != 0:  # It did not exceed the coefficient of static friction
                     d = 0
                     vel = 0
                 else:
@@ -259,6 +261,7 @@ class Slider:
             points[i - 1, 1, 1] = s
 
         return points
+
     def rule_points2(self, n):
         points = self.rule_points(n)
 
@@ -269,7 +272,6 @@ class Slider:
             points[:,i] = rotate(points[:,i])
 
         return points
-
 
 
     def add_timer(self):
@@ -321,12 +323,10 @@ class Slider:
                     if not sensor['h']:
                         self.timer_pulse(sensor['timer'], True)
                         sensor['h'] = True
-                        self.GUI.play()
                 else:
                     if sensor['h']:
                         self.timer_pulse(sensor['timer'], False)
                         sensor['h'] = False
-                        self.GUI.play()
 
     def index_timer(self, di):
         for i in range(len(self.timers)):

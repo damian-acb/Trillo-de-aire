@@ -52,7 +52,7 @@ def main():
 
     # Pygame window configuration ----------------------------------------------------
 
-    Sc = (720, 480)  # Screen size
+    Sc = (760, 480)  # Screen size
     screen = py.display.set_mode(Sc) # Create pygame window and with certain size
     py.display.set_caption("Slider Simulation")  # Caption of the window
 
@@ -63,7 +63,6 @@ def main():
     Gs = (240, 480)  # GUI size
     GUI = class_GUI.GUI(Gs, slider)  # Create the GUI
     previous_timeF = time.time()
-    slider.GUI = GUI
 
     run = True  # Variable to control the main loop
     while run:  # The program will be running while this main loop is active

@@ -37,28 +37,28 @@ class GUI:
         # Create play button
         self.play_button = ctk.CTkButton(master=self.root, textvariable=self.play_button_text, command=self.play,
                                          cursor='hand2', fg_color='#be2517', hover_color='#9e1f13')
-        self.play_button.pack(pady=12, padx=30)
+        self.play_button.pack(pady=6, padx=30)
 
         # Create friction frame
         self.frame2 = ctk.CTkFrame(master=self.root)
-        self.frame2.pack(pady=12, padx=30, fill='both')
+        self.frame2.pack(ipady=6, pady=6, padx=30, fill='both')
 
         self.mu_label = ctk.CTkLabel(master=self.frame2, text='Friction')
         self.mu_label.pack(pady=6, padx=20)
 
         # Create mass frame
         self.frame1 = ctk.CTkFrame(master=self.root)
-        self.frame1.pack(pady=20, padx=25, fill='both')
+        self.frame1.pack(ipady=6,pady=6, padx=25, fill='both')
 
         self.add_mass_label = ctk.CTkLabel(master=self.frame1, text='Add mass')
         self.add_mass_label.pack(pady=6, padx=20)
 
-        self.add_mass_button1 = ctk.CTkButton(master=self.frame1, text='100 gr', command=lambda:self.check_mass(100), cursor='hand2')
-        self.add_mass_button2 = ctk.CTkButton(master=self.frame1, text='150 gr', command=lambda:self.check_mass(150), cursor='hand2')
-        self.add_mass_button3 = ctk.CTkButton(master=self.frame1, text='250 gr', command=lambda:self.check_mass(250), cursor='hand2')
-        self.add_mass_button1.pack(pady=6, padx=20)
-        self.add_mass_button2.pack(pady=6, padx=20)
-        self.add_mass_button3.pack(pady=6, padx=20)
+        self.add_mass_button1 = ctk.CTkButton(master=self.frame1, text='100 gr', command=lambda:self.check_mass(100), cursor='hand2', corner_radius=0)
+        self.add_mass_button2 = ctk.CTkButton(master=self.frame1, text='150 gr', command=lambda:self.check_mass(150), cursor='hand2', corner_radius=0)
+        self.add_mass_button3 = ctk.CTkButton(master=self.frame1, text='250 gr', command=lambda:self.check_mass(250), cursor='hand2', corner_radius=0)
+        self.add_mass_button1.pack(pady=1, padx=20)
+        self.add_mass_button2.pack(pady=1, padx=20)
+        self.add_mass_button3.pack(pady=1, padx=20)
 
         self.mu_slider = ctk.CTkSlider(master=self.frame2, from_=0, to=1, variable=self.mu, hover=True)
         self.mu_slider.pack(pady=6, padx=4)
@@ -73,7 +73,7 @@ class GUI:
         #
         self.frame5 = ctk.CTkFrame(master=self.root)
         self.add_timer_button = ctk.CTkButton(master=self.frame5, text='Add timer', cursor='hand2', command=self.add_timer)
-        self.frame5.pack(pady=20, padx=25)
+        self.frame5.pack(pady=12, padx=25)
         self.add_timer_button.pack(pady=6, padx=20)
 
     def check_mass(self, m):
@@ -97,8 +97,8 @@ class GUI:
         if self.slider.play:
             self.slider.play = False
             self.play_button_text.set('Play')
-            self.frame1.pack(pady=20, padx=25, fill='both')
-            self.frame5.pack(pady=20, padx=25)
+            self.frame1.pack(pady=6, padx=25, fill='both')
+            self.frame5.pack(pady=6, padx=25)
             self.add_timer_button.pack(pady=6, padx=20)
 
         else:
@@ -136,7 +136,7 @@ class GUI:
         self.slider.add_timer()
         Timer = self.slider.timers[-1]
         color = self.rgb_to_hex(self.slider.timers[-1]['color'])
-        timer = ctk.CTkFrame(master=self.sensors, fg_color=color)
+        timer = ctk.CTkFrame(master=self.sensors, fg_color=color, corner_radius=0)
         timer.pack(pady=12, padx=30, fill='both')
 
         time = ctk.CTkLabel(master=timer, bg_color='#ffffff')
