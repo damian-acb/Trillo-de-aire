@@ -1,6 +1,7 @@
 import numpy as np
 import pygame as py
 import pygame.gfxdraw
+from scipy.integrate import RK45
 
 
 class Slider:
@@ -19,7 +20,7 @@ class Slider:
 
         # Masses
         self.masses = []
-        self.mw = 50
+        self.mw = 48
         self.W = 15
         self.moving_mass = [False, 0]
         self.moving_sensor = [False, 0]
@@ -41,7 +42,6 @@ class Slider:
         # Timers
         self.timers = []
         self.t_id = 0
-
 
     def draw(self):
         # Draw the slider
@@ -209,6 +209,7 @@ class Slider:
             cos = np.cos(self.angle)
 
             friction = mu*self.maxFriction
+
             for mass in self.masses:
 
                 v0 = mass['vel']
@@ -216,13 +217,14 @@ class Slider:
 
                 if v0==0 and sin <= (1.1*friction)*cos and friction != 0:  # It did not exceed the coefficient of static friction
                     d = 0
-                    vel = 0
+                    v = 0
                 else:
-                    d = v0*dt  #  - .5*g*sin*dt**2 + n*.5*friction*g*cos*dt**2
-                    vel = v0 - g*sin*dt + n*friction*g*cos*dt
 
-                r = d*np.array([cos, -sin])  # Convert the displacement d into a vector
-                mass['vel'] = vel
+                    ds = v0*dt - .5*g*sin*dt**2 + n*.5*friction*g*cos*dt**2
+                    v = v0 - g*sin*dt + n*friction*g*cos*dt
+
+                r = ds*np.array([cos, -sin])  # Convert the displacement d into a vector
+                mass['vel'] = v
 
                 # Update position for every point that forms the mass
                 for i in range(4):
@@ -316,7 +318,7 @@ class Slider:
         for sensor in self.sensors:
             for mass in self.masses:
                 p = sensor['points'][4]
-                v = mass['points'][0] - p + self.A @ (mass['points'][3] - p) #  - [2, 0]*sensor['points'][4]
+                v = mass['points'][0] - p + self.A @ (mass['points'][3] - p)
                 d = np.sqrt(np.dot(v, v))
 
                 if d <= self.mw:
