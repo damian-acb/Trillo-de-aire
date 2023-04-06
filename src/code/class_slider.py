@@ -1,7 +1,6 @@
 import numpy as np
 import pygame as py
 import pygame.gfxdraw
-from scipy.integrate import RK45
 
 
 class Slider:
@@ -26,9 +25,10 @@ class Slider:
         self.moving_sensor = [False, 0]
 
         self.play = False
-        self.rule = self.rule_points(220) + self.points[1]
-        self.rule2 = self.rule_points2(220) + self.points[3]
-        self.rule3 = self.rule_points2(220)
+        self.L = 120
+        self.rule = self.rule_points(self.L) + self.points[1]
+        self.rule2 = self.rule_points2(self.L) + self.points[3]
+        self.rule3 = self.rule_points2(self.L)
 
         # Sensors
         self.sensors = []
@@ -204,7 +204,7 @@ class Slider:
         # - The 'unity' in pygame is pixels, and in the rule each centimeter is 3 pixels wide;
         #   that is why the gravity (g) is 9.81*3*100 to convert from meters/s^2 to pixels/s^2
         if self.play:
-            g = 981*3  # 9.81
+            g = 981*6  # 9.81
             sin = np.sin(self.angle)
             cos = np.cos(self.angle)
 

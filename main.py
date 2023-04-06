@@ -54,20 +54,17 @@ def main():
 
     # Pygame window configuration ----------------------------------------------------
 
-    Sc = (760, 480)  # Screen size
+    Sc = (780, 560)  # Screen size
     screen = py.display.set_mode(Sc) # Create pygame window and with certain size
     py.display.set_caption("Slider Simulation")  # Caption of the window
 
     # Create a slider with all its necessary information and structure ---------------
-    slider = class_slider.Slider(screen, 80, 660, 30)  # Create the slider
+    slider = class_slider.Slider(screen, 80, 720, 30)  # Create the slider
 
     # Create a GUI with all its necessary information and structure ------------------
     Gs = (240, 480)  # GUI size
     GUI = class_GUI.GUI(Gs, slider)  # Create the GUI
     previous_timeF = time.time()
-
-    c = 0 
-    toplot = []
 
     run = True  # Variable to control the main loop
     while run:  # The program will be running while this main loop is active
@@ -91,26 +88,6 @@ def main():
             previous_timeF = current_timeF
             slider.draw()  # Call the function that is in charge to draw everything automatically
             py.display.flip()  # Update the screen
-            if len(slider.masses) > 0 and not slider.moving_mass[0]:
-                if slider.play:
-                    c = 1
-                    mass = slider.masses[0]['mass']
-                    y = slider.points[1][1] - slider.masses[0]['points'][0][1]
-                    v = 981*3*(y)*(mass)
-                    k = .5*mass*slider.masses[0]['vel']**2
-                    toplot.append([v, k, v+k])
-                elif not slider.play and c == 1:
-                    c = 0
-                    data = np.array(toplot)
-                    fig, ax = plt.subplots(figsize=(8, 6))
-                    ax.plot(data[:,0], label='V')
-                    ax.plot(data[:,1], label='K') 
-                    ax.plot(data[:,2], label='E') 
-                    plt.legend()
-                    plt.show()
-
-                    np.savetxt('Energies.dat', data)
-                    toplot = []
             for i in range(len(slider.timers)):  # Loop thorough all the timers by index number
                 GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
             GUI.root.update()  # Update the GUI
