@@ -216,7 +216,7 @@ class Slider:
                 n = 1 if v0 < 0 else -1 if v0 > 0 else 0  # Here we are defining the variable n which determinates the sign of the frction 
 
                 if v0==0 and sin <= (1.1*friction)*cos and friction != 0:  # It did not exceed the coefficient of static friction
-                    d = 0
+                    ds = 0
                     v = 0
                 else:
 
@@ -278,7 +278,7 @@ class Slider:
 
     def add_timer(self):
         color = np.random.randint(20, 230, 3)
-        timer = {'s': 0, 'type': 'pulse', 'id': self.t_id, 'play': False, 'time': 0., 'color': color, 'precision_mode': 1}
+        timer = {'s': 0, 'type': 'pulse', 'id': self.t_id, 'play': False, 'time': 0., 'color': color, 'precision_mode': 1, 'last': False}
         self.timers.append(timer)
         self.t_id += 1
 
@@ -305,6 +305,7 @@ class Slider:
             elif pulse and self.timers[ind]['s'] == 1:
                 self.timers[ind]['s'] += 1
                 self.timers[ind]['play'] = False
+                self.timers[ind]['last'] = True
         elif self.timers[ind]['type'] == 'gate':
             if pulse and self.timers[ind]['s'] == 0:
                 self.timers[ind]['s'] += 1
@@ -312,6 +313,7 @@ class Slider:
             elif not pulse and self.timers[ind]['s'] == 1:
                 self.timers[ind]['s'] += 1
                 self.timers[ind]['play'] = False
+                self.timers[ind]['last'] = True
 
     def sensor_check(self):
 

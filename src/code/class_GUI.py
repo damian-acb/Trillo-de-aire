@@ -191,13 +191,11 @@ class GUI:
 
     def update_timer(self, n, time, precision_mode, reset):
         if precision_mode == 1:
-            # e = np.random.normal(0, .03, 1)[0] if not reset else 0
-            e = 0
+            e = np.random.normal(0, .01, 1)[0] if not reset else 0
             time = time + e
             self.timers[n][1].configure(text=f'{time: .2f}'+' s')
-        if precision_mode == 2:
-            # e = np.random.normal(0, .0003, 1)[0] if not reset else 0
-            e = 0
+        elif precision_mode == 2:
+            e = np.random.normal(0, .0003, 1)[0] if not reset else 0
             time = time + e
             self.timers[n][1].configure(text=f'{time: .4f}'+' s')
 

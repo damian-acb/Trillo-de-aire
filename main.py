@@ -89,7 +89,11 @@ def main():
             slider.draw()  # Call the function that is in charge to draw everything automatically
             py.display.flip()  # Update the screen
             for i in range(len(slider.timers)):  # Loop thorough all the timers by index number
-                GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
+                if slider.timers[i]['play']:
+                    GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
+                elif slider.timers[i]['last']:
+                    slider.timers[i]['last'] = False
+                    GUI.update_timer(i, slider.timers[i]['time'], slider.timers[i]['precision_mode'], False)  # Update the i-th timer in the GUI
             GUI.root.update()  # Update the GUI
 
     # This is executed once the main loop terminates ----------------------------------------------
